@@ -1,0 +1,157 @@
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Scrollbar personalizada - simple y limpia */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #64748b;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Para Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #64748b transparent;
+}
+
+/* Texto con contorno para "MediNutr" - letras blancas con línea negra fina */
+.text-outline {
+    color: white;
+    -webkit-text-stroke: 1.5px black;
+    paint-order: stroke fill;
+    font-weight: 700;
+}
+
+.chat-message {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.avatar-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Animación moderna de deslizamiento hacia arriba con fade */
+@keyframes slideUpFadeOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0px);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-100%) scale(0.95);
+        filter: blur(5px);
+    }
+}
+
+.fade-out-up {
+    animation: slideUpFadeOut 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+/* Animación de zoom out con rotación para el avatar */
+@keyframes zoomRotateOut {
+    0% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+        filter: blur(0px);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.5) rotate(180deg);
+        filter: blur(2px);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0) rotate(360deg);
+        filter: blur(5px);
+    }
+}
+
+.shrink-avatar {
+    animation: zoomRotateOut 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+/* Animación de entrada del chat con efecto de slide desde abajo y zoom */
+@keyframes slideUpZoomIn {
+    0% {
+        opacity: 0;
+        transform: translateY(100%) scale(0.9);
+        filter: blur(10px);
+    }
+    60% {
+        opacity: 0.8;
+        transform: translateY(10%) scale(1.02);
+        filter: blur(2px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0px);
+    }
+}
+
+.fade-in-chat {
+    animation: slideUpZoomIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+/* Efecto de pulso en el botón de enviar al hacer hover */
+.btn-send:hover {
+    animation: pulse 0.6s ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px 10px rgba(59, 130, 246, 0);
+    }
+}
+
+/* Efecto de brillo en la transición */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+/* Responsividad mejorada */
+@media (max-width: 768px) {
+    .text-outline {
+        -webkit-text-stroke: 1px black;
+    }
+}
