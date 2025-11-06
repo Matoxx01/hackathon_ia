@@ -1,0 +1,6 @@
+fastapi>=0.95.0
+uvicorn[standard]>=0.22.0
+openai>=1.0.0
+python-dotenv>=1.0.0
+# Optional: langgraph (instalar solo si usarás el SDK)
+langgraph>=0.1.0
