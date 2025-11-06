@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediNutrIA - Tu Asistente de Salud y Nutrición</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/logo.png">
+
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="/static/style.css">
+    
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen">
+
+    <!-- Contenido principal -->
+    <main class="min-h-screen">
+        
+        <!-- Página de inicio -->
+        <section id="home-section" class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+            <!-- Hero Section -->
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden mb-8 lg:mb-12">
+                <div class="grid md:grid-cols-2 gap-6 lg:gap-8 items-center p-6 sm:p-8 lg:px-12 lg:pt-12 lg:pb-6">
+                    <!-- En móvil: Título y avatar en la misma fila -->
+                    <div class="space-y-4 lg:space-y-6 md:order-1">
+                        <!-- Título y avatar juntos en móvil -->
+                        <div class="flex items-center justify-between gap-4">
+                            <h1 id="hero-title" class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight flex-1">
+                                Bienvenido a <span class="text-outline">MediNutr</span><span class="text-blue-900">IA</span>
+                            </h1>
+                            <!-- Avatar pequeño visible solo en móvil -->
+                            <div id="hero-avatar-mobile" class="md:hidden flex-shrink-0">
+                                <div class="w-20 h-20">
+                                    <img src="/static/avatar.png" alt="MediNutrIA Avatar" class="w-full h-full object-contain">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="hero-content">
+                            <p class="text-lg sm:text-xl md:text-2xl text-gray-600 leading-relaxed">
+                                Tu asistente inteligente de salud y nutrición.
+                            </p>
+                            <br />
+                            <p class="text-lg sm:text-xl md:text-2xl text-gray-600 leading-relaxed">
+                            MediNutrIA proporciona información general, consulta siempre a un profesional de la salud.
+                            </p>
+                            <div class="space-y-3 lg:space-y-4 mt-4 lg:mt-6">
+                                <div class="flex items-start space-x-3">
+                                    <i class="fas fa-check-circle text-green-500 text-xl lg:text-2xl mt-1"></i>
+                                    <p class="text-base sm:text-lg lg:text-xl text-gray-700">Asesoramiento nutricional personalizado</p>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <i class="fas fa-check-circle text-green-500 text-xl lg:text-2xl mt-1"></i>
+                                    <p class="text-base sm:text-lg lg:text-xl text-gray-700">Recomendaciones de salud adaptadas</p>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <i class="fas fa-check-circle text-green-500 text-xl lg:text-2xl mt-1"></i>
+                                    <p class="text-base sm:text-lg lg:text-xl text-gray-700">Disponible 24/7 para ayudarte</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Input del chat en el hero - MÁS LARGO -->
+                        <div class="mt-6 lg:mt-8">
+                            <form id="hero-chat-form" class="flex flex-col sm:flex-row gap-3 sm:gap-4" onsubmit="startChat(event)">
+                                <input 
+                                    type="text" 
+                                    id="hero-input" 
+                                    placeholder="Escribe tu pregunta aquí..." 
+                                    class="flex-1 min-w-0 px-6 lg:px-8 py-6 lg:py-7 border-2 border-gray-300 rounded-full focus:outline-none focus:border-blue-500 text-lg lg:text-xl transition-all duration-300 focus:shadow-lg"
+                                    autocomplete="off"
+                                >
+                                <button 
+                                    type="submit" 
+                                    class="bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 sm:px-8 py-6 lg:py-7 rounded-full hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap flex-shrink-0"
+                                >
+                                    <span class="text-lg font-semibold">Enviar</span>
+                                    <i class="fas fa-paper-plane text-lg"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Avatar grande visible solo en tablets y desktop -->
+                    <div class="hidden md:flex justify-center md:order-2">
+                        <div id="hero-avatar" class="relative">
+                            <div class="w-96 h-96 lg:w-[640px] lg:h-[640px]">
+                                <img src="/static/avatar.png" alt="MediNutrIA Avatar" class="w-full h-full object-contain">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Características -->
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-8 lg:mb-12">
+                <div class="bg-white p-6 lg:p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-14 h-14 lg:w-16 lg:h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 lg:mb-6">
+                        <i class="fas fa-brain text-blue-600 text-2xl lg:text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl lg:text-2xl font-bold text-gray-800 mb-3 lg:mb-4">Inteligencia Artificial</h3>
+                    <p class="text-base lg:text-lg text-gray-600 leading-relaxed">
+                        Tecnología avanzada para brindarte las mejores recomendaciones de salud
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 lg:p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-14 h-14 lg:w-16 lg:h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 lg:mb-6">
+                        <i class="fas fa-apple-alt text-green-600 text-2xl lg:text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl lg:text-2xl font-bold text-gray-800 mb-3 lg:mb-4">Nutrición Personalizada</h3>
+                    <p class="text-base lg:text-lg text-gray-600 leading-relaxed">
+                        Planes alimenticios adaptados a tus necesidades y preferencias
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 lg:p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-14 h-14 lg:w-16 lg:h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4 lg:mb-6">
+                        <i class="fas fa-heartbeat text-purple-600 text-2xl lg:text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl lg:text-2xl font-bold text-gray-800 mb-3 lg:mb-4">Cuidado Integral</h3>
+                    <p class="text-base lg:text-lg text-gray-600 leading-relaxed">
+                        Acompañamiento completo en tu camino hacia una vida más saludable
+                    </p>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="bg-gradient-to-r from-blue-600 to-green-600 rounded-3xl shadow-2xl p-8 lg:p-12 text-white text-center">
+                <h2 class="text-3xl lg:text-4xl font-bold mb-4 lg:mb-6">¿Listo para mejorar tu salud?</h2>
+                <p class="text-xl lg:text-2xl mb-6 lg:mb-8 opacity-90">Comienza ahora mismo a conversar con MediNutrIA</p>
+            </div>
+        </section>
+
+        <!-- Página del Chatbot -->
+        <section id="chat-section" class="hidden h-screen flex flex-col">
+            <!-- Header del chat -->
+            <div class="bg-gradient-to-r from-blue-600 to-green-600 p-4 sm:p-6 flex items-center space-x-3 sm:space-x-4 shadow-lg">
+                <!-- Botón para volver -->
+                <button 
+                    onclick="showHome()" 
+                    class="text-white hover:bg-white/20 p-3 rounded-full transition-all duration-300 flex items-center justify-center"
+                    title="Volver al inicio"
+                >
+                    <i class="fas fa-arrow-left text-xl sm:text-2xl"></i>
+                </button>
+                <div id="chat-avatar" class="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 p-1">
+                    <img src="/static/logo.png" alt="MediNutrIA Logo" class="w-full h-full object-contain">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white truncate">
+                        <span class="text-outline">MediNutr</span><span class="text-blue-900">IA</span>
+                    </h2>
+                    <p class="text-blue-100 text-base sm:text-lg">Tu asistente de salud y nutrición</p>
+                </div>
+            </div>
+
+            <!-- Mensajes del chat -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 bg-gradient-to-br from-blue-50 to-green-50">
+                <!-- Los mensajes se agregarán dinámicamente aquí -->
+            </div>
+
+            <!-- Input del chat -->
+            <div class="px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3 bg-white border-t border-gray-200 shadow-lg">
+                <form id="chat-form" class="flex flex-row gap-2 sm:gap-4" onsubmit="sendMessage(event)">
+                    <input 
+                        type="text" 
+                        id="user-input" 
+                        placeholder="Escribe tu pregunta aquí..." 
+                        class="flex-1 min-w-0 px-4 py-3 sm:px-6 sm:py-6 lg:px-8 lg:py-7 border-2 border-gray-300 rounded-full focus:outline-none focus:border-blue-500 text-base sm:text-lg lg:text-xl transition-all duration-300 focus:shadow-lg"
+                        autocomplete="off"
+                    >
+                    <button 
+                        type="submit" 
+                        class="flex-shrink-0 text-blue-600 sm:bg-gradient-to-r sm:from-blue-600 sm:to-green-600 sm:text-white px-3 py-3 sm:px-8 sm:py-6 lg:py-7 sm:rounded-full hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+                    >
+                        <span class="hidden sm:inline text-lg font-semibold">Enviar</span>
+                        <i class="fas fa-paper-plane text-xl sm:text-lg"></i>
+                    </button>
+                </form>
+                <!-- Disclaimer solo visible en pantallas medianas y grandes -->
+                <p class="hidden sm:block text-sm text-gray-500 mt-3 mr-4 text-center">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    MediNutrIA proporciona información general. Consulta siempre a un profesional de la salud.
+                </p>
+            </div>
+        </section>
+
+    </main>
+    
+    <script src="/static/script.js"></script>
+</body>
+</html>
