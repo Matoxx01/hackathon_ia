@@ -27,7 +27,6 @@ except Exception:
 		from agents.agents_factory import run_agent_flow
 	except Exception:
 		run_agent_flow = None
->>>>>>> c8ab80d3d3f816edf1297edea01366e846a40071
 
 
 # Rutas de directorios relativas a este archivo (app/main.py)
@@ -458,6 +457,13 @@ async def chat(request: ChatRequest):
     except Exception as e:
         return ChatResponse(response=f"Error: {e}")
 
+
+import sys
+from pathlib import Path
+
+# Agregar el directorio raíz al path de Python
+root_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(root_dir))
 
 from api import coach
 
