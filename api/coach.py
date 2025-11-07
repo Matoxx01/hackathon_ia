@@ -5,6 +5,7 @@ import html
 import logging
 import httpx
 import uuid
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,13 @@ from pathlib import Path
 root_dir = Path(__file__).resolve().parent.parent
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
+
+# Cargar variables de entorno
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv es opcional
 
 try:
     from src.agents.agents_factory import run_agent_flow
@@ -235,10 +243,16 @@ async def generate_assessment_pdf(html_content: str, risk_level: str, risk_score
             "percentage": percentage
         }
         
+        # Obtener URL del servicio PDF desde variable de entorno
+        pdf_service_url = os.getenv('PDF_SERVICE_URL', 'http://localhost:8000')
+        pdf_api_url = f"{pdf_service_url}/api/pdf/create"
+        
+        logger.info(f"📄 Generando PDF usando servicio: {pdf_api_url}")
+        
         # Llamar a la API local de creación de PDF
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                "http://recetapps.com:8000/api/pdf/create",
+                pdf_api_url,
                 json=pdf_payload,
                 timeout=30.0
             )
