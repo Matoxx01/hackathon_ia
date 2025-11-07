@@ -1,3 +1,6 @@
+// Variable global para almacenar session_id de evaluación
+let currentSessionId = null;
+
 // Función para iniciar el chat desde el hero
 function startChat(event) {
     event.preventDefault();
@@ -40,23 +43,7 @@ function startChat(event) {
         showTypingIndicator();
         
         // Enviar el mensaje a la API
-        fetch('/api/coach', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ query: message })
-        })
-        .then(response => response.json())
-        .then(data => {
-            removeTypingIndicator();
-            addMessage(data.final, 'bot');
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            removeTypingIndicator();
-            addMessage('Lo siento, ha ocurrido un error. Por favor, intenta nuevamente.', 'bot');
-        });
+        sendToCoach(message);
         
         // Limpiar el input del hero
         input.value = '';
@@ -80,12 +67,59 @@ function showHome() {
     // Limpiar mensajes del chat
     const chatMessages = document.getElementById('chat-messages');
     chatMessages.innerHTML = '';
+    // Resetear sesión
+    currentSessionId = null;
 }
 
 // Función para mostrar el chatbot (solo se usa si ya hay conversación)
 function showChat() {
     document.getElementById('home-section').classList.add('hidden');
     document.getElementById('chat-section').classList.remove('hidden');
+}
+
+// Función para enviar al coach (centralizada)
+async function sendToCoach(message) {
+    try {
+        const requestBody = {
+            query: message
+        };
+        
+        // Si hay una sesión activa, incluir session_id
+        if (currentSessionId) {
+            requestBody.session_id = currentSessionId;
+        }
+        
+        const response = await fetch('/api/coach', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        const data = await response.json();
+        
+        // Si la respuesta incluye session_id, guardarlo
+        if (data.session_id) {
+            currentSessionId = data.session_id;
+        }
+        
+        // Remover indicador de escritura
+        removeTypingIndicator();
+        
+        // Agregar respuesta del bot
+        addMessage(data.final, 'bot', data);
+        
+        // Si es una pregunta de evaluación, mostrar progreso
+        if (data.is_question && data.question_progress) {
+            addProgressIndicator(data.question_progress);
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        removeTypingIndicator();
+        addMessage('Lo siento, ha ocurrido un error. Por favor, intenta nuevamente.', 'bot');
+    }
 }
 
 // Función para enviar mensajes
@@ -104,29 +138,8 @@ async function sendMessage(event) {
     // Mostrar indicador de escritura
     showTypingIndicator();
     
-    try {
-        // Llamar a la API de FastAPI
-        const response = await fetch('/api/coach', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ query: message })
-        });
-        
-        const data = await response.json();
-        
-        // Remover indicador de escritura
-        removeTypingIndicator();
-        
-        // Agregar respuesta del bot
-        addMessage(data.final, 'bot');
-        
-    } catch (error) {
-        console.error('Error:', error);
-        removeTypingIndicator();
-        addMessage('Lo siento, ha ocurrido un error. Por favor, intenta nuevamente.', 'bot');
-    }
+    // Enviar al coach
+    await sendToCoach(message);
 }
 
 // Función para agregar mensajes al chat
@@ -213,6 +226,29 @@ function decodeHtmlEntities(html) {
     const txt = document.createElement('textarea');
     txt.innerHTML = html;
     return txt.value;
+}
+
+// Función para mostrar indicador de progreso de evaluación
+function addProgressIndicator(progress) {
+    const chatMessages = document.getElementById('chat-messages');
+    
+    // Remover indicador anterior si existe
+    const existingProgress = document.getElementById('progress-indicator');
+    if (existingProgress) {
+        existingProgress.remove();
+    }
+    
+    const progressDiv = document.createElement('div');
+    progressDiv.id = 'progress-indicator';
+    progressDiv.className = 'text-center my-4';
+    progressDiv.innerHTML = `
+        <div class="inline-block bg-blue-100 text-blue-800 px-6 py-2 rounded-full">
+            <i class="fas fa-clipboard-list mr-2"></i>
+            <span class="font-semibold">Progreso: ${progress}</span>
+        </div>
+    `;
+    chatMessages.appendChild(progressDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 // Permitir enviar con Enter
