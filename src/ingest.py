@@ -1,6 +1,6 @@
 from pathlib import Path
 import json
-from utils import chunk_text, embed_texts, save_index
+from utils import chunk_text, embed_texts, save_index, extract_text_from_pdf
 import numpy as np
 
 KB_DIR = Path(__file__).parent.parent / 'kb'
@@ -17,6 +17,7 @@ def load_documents(kb_dir: Path, papers_dir: Path = None):
     docs = []
     if not papers_dir.exists():
         return docs
+    # MarkDown files
     for p in papers_dir.rglob('*.md'):
         # saltar archivos ocultos o con nombre index
         if p.name.startswith('index'):
@@ -32,6 +33,17 @@ def load_documents(kb_dir: Path, papers_dir: Path = None):
         if not title:
             title = p.stem
         docs.append({'source': str(p.relative_to(kb_dir)), 'text': text, 'title': title})
+    # PDF files: extraer por páginas y tratar cada página como un "documento" breve
+    for p in papers_dir.rglob('*.pdf'):
+        try:
+            pages = extract_text_from_pdf(p)
+        except Exception as e:
+            print(f"Advertencia: no se pudo leer PDF {p}: {e}")
+            continue
+        for i, page_text in enumerate(pages):
+            title = f"{p.stem} - page {i+1}"
+            source = str(p.relative_to(kb_dir)) + f"::page_{i+1}"
+            docs.append({'source': source, 'text': page_text, 'title': title})
     return docs
 
 
