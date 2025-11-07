@@ -215,7 +215,7 @@ async def generate_assessment_pdf(html_content: str, risk_level: str, risk_score
         # Llamar a la API local de creación de PDF
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                "http://localhost:8000/api/pdf/create",
+                "http://recetapps.com:8000/api/pdf/create",
                 json=pdf_payload,
                 timeout=30.0
             )
