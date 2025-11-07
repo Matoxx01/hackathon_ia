@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from typing import Any, Dict, Optional
 import html
 import logging
+import httpx
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -175,6 +177,62 @@ async def handle_assessment_flow(request: CoachRequest, session) -> CoachRespons
     return await complete_assessment(session)
 
 
+async def generate_assessment_pdf(html_content: str, risk_level: str, risk_score: float, session) -> Optional[Dict[str, Any]]:
+    """
+    Genera un PDF del informe de evaluación usando la API interna.
+    
+    Args:
+        html_content: Contenido HTML del informe
+        risk_level: Nivel de riesgo (bajo, medio, alto)
+        risk_score: Probabilidad de riesgo (0-1)
+        session: Objeto de sesión con variables del usuario
+        
+    Returns:
+        Diccionario con información del PDF generado o None si falla
+    """
+    try:
+        # Generar título basado en el nivel de riesgo (sin emojis para compatibilidad con headers HTTP)
+        title = f"Informe de Evaluacion de Riesgo de Diabetes - Riesgo {risk_level.upper()}"
+        
+        # Generar descripción
+        age = session.variables.get('Age_Years', 'N/A')
+        bmi = session.variables.get('BMI', 'N/A')
+        bmi_str = f"{bmi:.1f}" if isinstance(bmi, (int, float)) else str(bmi)
+        
+        description = f"Evaluacion de riesgo de diabetes. Nivel: {risk_level.upper()} ({risk_score:.1%}). Edad: {age} anos, IMC: {bmi_str}. Generado por MediNutrIA."
+        
+        # Convertir risk_score (0-1) a porcentaje (0-100)
+        percentage = risk_score * 100
+        
+        # Preparar el payload para la API
+        pdf_payload = {
+            "html_content": html_content,
+            "title": title,
+            "description": description,
+            "percentage": percentage
+        }
+        
+        # Llamar a la API local de creación de PDF
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "http://localhost:8000/api/pdf/create",
+                json=pdf_payload,
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                pdf_data = response.json()
+                logger.info(f"PDF generado exitosamente: {pdf_data.get('pdf_id')}")
+                return pdf_data
+            else:
+                logger.error(f"Error al generar PDF: {response.status_code} - {response.text}")
+                return None
+                
+    except Exception as e:
+        logger.error(f"Error generando PDF: {e}")
+        return None
+
+
 async def complete_assessment(session) -> CoachResponse:
     """Completa la evaluación y genera predicción con recomendaciones."""
     
@@ -234,6 +292,30 @@ Genera recomendaciones específicas y motivadoras basadas en su perfil.
         
         final_html = render_markdown_to_safe_html(final_response)
         
+        # Generar PDF con el informe
+        pdf_data = await generate_assessment_pdf(
+            html_content=final_html,
+            risk_level=risk_level,
+            risk_score=risk_score,
+            session=session
+        )
+        
+        # Agregar enlace del PDF a la respuesta
+        if pdf_data:
+            pdf_link_html = f"""
+<div style="margin-top: 30px; padding: 20px; background-color: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 8px;">
+    <h3 style="margin: 0 0 10px 0; color: #1e40af;">📄 Tu Informe está Listo</h3>
+    <p style="margin: 0 0 15px 0;">Hemos generado un PDF completo con tu evaluación y recomendaciones personalizadas.</p>
+    <div>
+        <a href="{pdf_data.get('download_url')}" 
+           style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            ⬇️ Descargar Informe en PDF
+        </a>
+    </div>
+</div>
+"""
+            final_html += pdf_link_html
+        
         return CoachResponse(
             risk=risk_level,
             retrieved_count=0,
@@ -245,7 +327,8 @@ Genera recomendaciones específicas y motivadoras basadas en su perfil.
             details={
                 "risk_score": risk_score,
                 "variables": session.variables,
-                "bmi": session.variables.get("BMI")
+                "bmi": session.variables.get("BMI"),
+                "pdf_data": pdf_data
             }
         )
         

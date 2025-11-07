@@ -1,0 +1,47 @@
+[
+  {
+    "pdf_id": "d002088c-91ae-41da-ac75-092d5989c731",
+    "title": "🔴 Informe de Evaluación de Riesgo de Diabetes - Riesgo ALTO",
+    "description": "Evaluación de riesgo de diabetes. Nivel: ALTO (88.2%). Edad: 23.0 años, IMC: 24.8. Generado por MediNutrIA.",
+    "filename": "d002088c-91ae-41da-ac75-092d5989c731.pdf",
+    "download_url": "/api/pdf/d002088c-91ae-41da-ac75-092d5989c731/download",
+    "view_url": "/api/pdf/d002088c-91ae-41da-ac75-092d5989c731/view",
+    "created_at": "2025-11-07T10:50:44.929286"
+  },
+  {
+    "pdf_id": "9bd75950-7959-4dfa-bf9d-806284a03a26",
+    "title": "Informe de Evaluacion de Riesgo de Diabetes - Riesgo ALTO",
+    "description": "Evaluacion de riesgo de diabetes. Nivel: ALTO (88.2%). Edad: 23.0 anos, IMC: 24.8. Generado por MediNutrIA.",
+    "filename": "9bd75950-7959-4dfa-bf9d-806284a03a26.pdf",
+    "download_url": "/api/pdf/9bd75950-7959-4dfa-bf9d-806284a03a26/download",
+    "view_url": "/api/pdf/9bd75950-7959-4dfa-bf9d-806284a03a26/view",
+    "created_at": "2025-11-07T10:58:12.102177"
+  },
+  {
+    "pdf_id": "a0c71735-8e0f-4c48-bcbe-79a8d9e8cd88",
+    "title": "Informe de Evaluacion de Riesgo de Diabetes - Riesgo ALTO",
+    "description": "Evaluacion de riesgo de diabetes. Nivel: ALTO (88.2%). Edad: 23.0 anos, IMC: 24.8. Generado por MediNutrIA.",
+    "filename": "a0c71735-8e0f-4c48-bcbe-79a8d9e8cd88.pdf",
+    "download_url": "/api/pdf/a0c71735-8e0f-4c48-bcbe-79a8d9e8cd88/download",
+    "view_url": "/api/pdf/a0c71735-8e0f-4c48-bcbe-79a8d9e8cd88/view",
+    "created_at": "2025-11-07T11:05:21.554095"
+  },
+  {
+    "pdf_id": "f7a753e7-2d21-4466-871c-6236a89a9039",
+    "title": "Informe de Evaluacion de Riesgo de Diabetes - Riesgo ALTO",
+    "description": "Evaluacion de riesgo de diabetes. Nivel: ALTO (88.2%). Edad: 23.0 anos, IMC: 24.8. Generado por MediNutrIA.",
+    "filename": "f7a753e7-2d21-4466-871c-6236a89a9039.pdf",
+    "download_url": "/api/pdf/f7a753e7-2d21-4466-871c-6236a89a9039/download",
+    "view_url": "/api/pdf/f7a753e7-2d21-4466-871c-6236a89a9039/view",
+    "created_at": "2025-11-07T11:09:23.413765"
+  },
+  {
+    "pdf_id": "74dce0e8-ae39-48bc-a6dd-f498f0540e57",
+    "title": "Informe de Evaluacion de Riesgo de Diabetes - Riesgo ALTO",
+    "description": "Evaluacion de riesgo de diabetes. Nivel: ALTO (88.2%). Edad: 23.0 anos, IMC: 24.8. Generado por MediNutrIA.",
+    "filename": "74dce0e8-ae39-48bc-a6dd-f498f0540e57.pdf",
+    "download_url": "/api/pdf/74dce0e8-ae39-48bc-a6dd-f498f0540e57/download",
+    "view_url": "/api/pdf/74dce0e8-ae39-48bc-a6dd-f498f0540e57/view",
+    "created_at": "2025-11-07T11:12:57.522390"
+  }
+]

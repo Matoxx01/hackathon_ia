@@ -196,43 +196,57 @@ def generate_circular_chart(percentage: float, title: str = "Progreso") -> str:
 	percentage = max(0, min(100, percentage))
 	remaining = 100 - percentage
 	
-	# Crear figura con fondo transparente
-	fig, ax = plt.subplots(figsize=(6, 6), facecolor='white')
+	# Crear figura más grande y con mejor aspecto
+	fig, ax = plt.subplots(figsize=(8, 8), facecolor='white')
+	
+	# Determinar color basado en el porcentaje (semáforo de riesgo)
+	if percentage < 30:
+		main_color = '#10b981'  # Verde (bajo riesgo)
+		risk_label = 'Riesgo Bajo'
+	elif percentage < 60:
+		main_color = '#f59e0b'  # Amarillo/Naranja (riesgo medio)
+		risk_label = 'Riesgo Medio'
+	else:
+		main_color = '#ef4444'  # Rojo (riesgo alto)
+		risk_label = 'Riesgo Alto'
 	
 	# Datos para el gráfico
 	sizes = [percentage, remaining]
-	colors = ['#4CAF50', '#E8E8E8']  # Verde para completado, gris claro para restante
-	explode = (0.05, 0)  # Resaltar la sección del porcentaje
+	colors = [main_color, '#f0f0f0']  # Color dinámico para riesgo, gris muy claro para restante
 	
-	# Crear el gráfico circular (donut)
-	wedges, texts, autotexts = ax.pie(
+	# Crear el gráfico circular (donut) sin explosión para aspecto más limpio
+	wedges, texts = ax.pie(
 		sizes,
-		explode=explode,
 		colors=colors,
-		autopct='',
 		startangle=90,
-		wedgeprops=dict(width=0.4, edgecolor='white', linewidth=2)
+		wedgeprops=dict(width=0.3, edgecolor='white', linewidth=4)
 	)
 	
-	# Agregar el porcentaje en el centro
-	ax.text(0, 0, f'{percentage:.1f}%', 
+	# Agregar el porcentaje en el centro del círculo (arriba)
+	ax.text(0, 0.2, f'{percentage:.1f}%', 
 			ha='center', va='center', 
 			fontsize=48, fontweight='bold', 
-			color='#333333')
+			color='#1f2937')
 	
-	# Agregar título arriba del gráfico
-	ax.text(0, -1.4, title, 
+	# Agregar etiqueta de nivel de riesgo en el centro del círculo (abajo)
+	ax.text(0, -0.2, risk_label, 
 			ha='center', va='center', 
-			fontsize=18, fontweight='bold', 
-			color='#555555')
+			fontsize=22, fontweight='600', 
+			color=main_color)
+	
+	# Agregar título FUERA y debajo del círculo
+	ax.text(0, -1.6, title, 
+			ha='center', va='center', 
+			fontsize=20, fontweight='bold', 
+			color='#374151')
 	
 	# Asegurar que el gráfico sea circular
 	ax.axis('equal')
 	
-	# Guardar en buffer
+	# Guardar en buffer con mayor resolución
 	buffer = BytesIO()
-	plt.tight_layout()
-	plt.savefig(buffer, format='PNG', dpi=150, bbox_inches='tight', 
+	plt.tight_layout(pad=0.5)
+	plt.savefig(buffer, format='PNG', dpi=200, bbox_inches='tight', 
 				facecolor='white', edgecolor='none')
 	plt.close(fig)
 	
@@ -266,23 +280,31 @@ def add_chart_to_html(html_content: str, percentage: float, chart_title: str = "
 		<meta charset="utf-8">
 		<style>
 			body {{
-				font-family: Arial, sans-serif;
-				margin: 20px;
+				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				margin: 0;
+				padding: 20px;
+				background-color: #f9fafb;
 			}}
 			.chart-container {{
 				text-align: center;
-				margin: 30px auto 50px;
-				padding: 20px;
+				margin: 40px auto 60px;
+				padding: 30px;
+				background-color: white;
+				border-radius: 12px;
+				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+				max-width: 600px;
 			}}
 			.chart-container img {{
-				max-width: 400px;
+				max-width: 500px;
+				width: 100%;
 				height: auto;
+				margin: 0 auto;
 			}}
 		</style>
 	</head>
 	<body>
 		<div class="chart-container">
-			<img src="data:image/png;base64,{chart_base64}" alt="Gráfico Circular">
+			<img src="data:image/png;base64,{chart_base64}" alt="Grafico de Riesgo">
 		</div>
 	"""
 	
@@ -543,11 +565,11 @@ async def download_pdf(pdf_id: str):
 	if not pdf_path.exists():
 		raise HTTPException(status_code=404, detail="Archivo PDF no existe")
 	
+	# Usar solo el filename para evitar problemas con caracteres Unicode en headers
 	return FileResponse(
 		path=str(pdf_path),
 		media_type="application/pdf",
-		filename=pdf_metadata["filename"],
-		headers={"Content-Disposition": f'attachment; filename="{pdf_metadata["title"]}.pdf"'}
+		filename=pdf_metadata["filename"]
 	)
 
 
@@ -568,10 +590,11 @@ async def view_pdf(pdf_id: str):
 	if not pdf_path.exists():
 		raise HTTPException(status_code=404, detail="Archivo PDF no existe")
 	
+	# Para visualizar inline en el navegador
 	return FileResponse(
 		path=str(pdf_path),
 		media_type="application/pdf",
-		headers={"Content-Disposition": f'inline; filename="{pdf_metadata["title"]}.pdf"'}
+		filename=pdf_metadata["filename"]
 	)
 
 
