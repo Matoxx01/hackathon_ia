@@ -15,9 +15,18 @@ except Exception:
     markdown = None
     bleach = None
 
+import sys
+from pathlib import Path
+
+# Agregar el directorio raíz al path de Python
+root_dir = Path(__file__).resolve().parent.parent
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
+
 try:
     from src.agents.agents_factory import run_agent_flow
-except ImportError:
+except ImportError as e:
+    logger.warning(f"Error importando agents_factory: {e}")
     run_agent_flow = None
 
 try:
@@ -31,10 +40,13 @@ try:
         VARIABLE_QUESTIONS
     )
     from api.predict import predict_diabetes_risk, get_risk_interpretation
+    logger.info("Módulos de predicción importados correctamente")
 except ImportError as e:
     logger.error(f"Error importando módulos de predicción: {e}")
     get_or_create_session = None
+    get_session = None
     predict_diabetes_risk = None
+    get_risk_interpretation = None
 
 router = APIRouter()
 
@@ -66,9 +78,11 @@ async def coach_endpoint(request: CoachRequest):
     # Detectar palabras clave para iniciar evaluación
     query_lower = request.query.lower()
     keywords_assessment = [
-        "evaluar", "evaluación", "evalua", "riesgo", "predicción", "prediccion",
+        "evaluar", "evaluación", "evalua", "evaluame", "riesgo", "predicción", "prediccion",
         "test", "cuestionario", "assessment", "analisis", "análisis",
-        "quiero saber mi riesgo", "calculame", "calcular mi riesgo"
+        "quiero saber mi riesgo", "calculame", "calcular mi riesgo",
+        "medir", "medirme", "medir mi riesgo", "quiero medir",
+        "chequear", "chequeo", "revisar", "calcular", "calculame"
     ]
     
     should_start_assessment = (
@@ -76,14 +90,23 @@ async def coach_endpoint(request: CoachRequest):
         any(keyword in query_lower for keyword in keywords_assessment)
     )
     
+    # Log para debugging
+    logger.info(f"📩 Query recibido: '{request.query}'")
+    logger.info(f"🔍 should_start_assessment: {should_start_assessment}")
+    logger.info(f"✅ get_or_create_session disponible: {get_or_create_session is not None}")
+    
     # Si hay una sesión activa, continuar con el flujo de preguntas
     if request.session_id:
+        if get_session is None:
+            raise HTTPException(status_code=500, detail="Módulo de sesiones no disponible")
         session = get_session(request.session_id)
         if session and not session.completed:
             return await handle_assessment_flow(request, session)
     
     # Si se solicita iniciar evaluación
-    if should_start_assessment and get_or_create_session is not None:
+    if should_start_assessment:
+        if get_or_create_session is None:
+            raise HTTPException(status_code=500, detail="Módulo de evaluación no disponible")
         return await start_assessment()
     
     # Flujo normal del agente conversacional

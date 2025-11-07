@@ -89,7 +89,9 @@ async function sendToCoach(message) {
             requestBody.session_id = currentSessionId;
         }
         
-        const response = await fetch('/api/coach', {
+        console.log('📤 Enviando al coach:', requestBody);
+        
+        const response = await fetch('/api/coach/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -99,9 +101,12 @@ async function sendToCoach(message) {
         
         const data = await response.json();
         
+        console.log('📥 Respuesta del coach:', data);
+        
         // Si la respuesta incluye session_id, guardarlo
         if (data.session_id) {
             currentSessionId = data.session_id;
+            console.log('🔑 Session ID guardado:', currentSessionId);
         }
         
         // Remover indicador de escritura
