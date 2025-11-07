@@ -33,27 +33,24 @@ function startChat(event) {
         chatSection.classList.remove('hidden');
         // No aplicar animación de entrada (fade-in-chat removido)
         
-        // Agregar mensaje de bienvenida del bot
-        addMessage('¡Hola! 👋 Soy MediNutrIA, tu asistente de salud y nutrición. Vi tu pregunta, déjame ayudarte.', 'bot');
-        
-        // Agregar el mensaje del usuario
+        // Agregar el mensaje del usuario directamente
         addMessage(message, 'user');
         
         // Mostrar indicador de escritura
         showTypingIndicator();
         
         // Enviar el mensaje a la API
-        fetch('/api/chat', {
+        fetch('/api/coach', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ query: message })
         })
         .then(response => response.json())
         .then(data => {
             removeTypingIndicator();
-            addMessage(data.response, 'bot');
+            addMessage(data.final, 'bot');
         })
         .catch(error => {
             console.error('Error:', error);
@@ -109,12 +106,12 @@ async function sendMessage(event) {
     
     try {
         // Llamar a la API de FastAPI
-        const response = await fetch('/api/chat', {
+        const response = await fetch('/api/coach', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ query: message })
         });
         
         const data = await response.json();
@@ -123,7 +120,7 @@ async function sendMessage(event) {
         removeTypingIndicator();
         
         // Agregar respuesta del bot
-        addMessage(data.response, 'bot');
+        addMessage(data.final, 'bot');
         
     } catch (error) {
         console.error('Error:', error);
@@ -149,14 +146,21 @@ function addMessage(text, sender) {
             </div>
         `;
     } else {
+        // Si el backend envía HTML (por ejemplo: <h3>...</h3>), queremos renderizarlo.
+        // Decodificamos entidades HTML y luego lo insertamos como HTML.
+        // NOTA: esto permite que el servidor controle el HTML; asegúrate de solo
+        // enviar contenido confiable desde el backend para evitar XSS.
+        const decoded = decodeHtmlEntities(text);
         messageDiv.innerHTML = `
             <div class="w-12 h-12 flex items-center justify-center flex-shrink-0">
                 <img src="/static/logo.png" alt="MediNutrIA" class="w-full h-full object-contain">
             </div>
-            <div class="bg-white rounded-2xl rounded-tl-none p-5 shadow-md max-w-xl">
-                <p class="text-gray-800 text-lg">${escapeHtml(text)}</p>
+            <div class="bg-white rounded-2xl rounded-tl-none p-5 shadow-md max-w-xl prose" data-raw>
             </div>
         `;
+        const bubble = messageDiv.querySelector('[data-raw]');
+        // Si el texto contiene etiquetas HTML (o entidades), asignar como innerHTML.
+        bubble.innerHTML = decoded;
     }
     
     chatMessages.appendChild(messageDiv);
@@ -198,6 +202,17 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Decodificar entidades HTML (por ejemplo: "&lt;h3&gt;...&lt;/h3&gt;") a HTML bruto.
+// Utilizamos un elemento <textarea> para aprovechar el parser del navegador.
+function decodeHtmlEntities(html) {
+    if (!html || typeof html !== 'string') return '';
+    // Si el texto ya contiene una etiqueta '<', asumimos que es HTML bruto y lo devolvemos.
+    if (html.indexOf('<') !== -1 && html.indexOf('&lt;') === -1) return html;
+    const txt = document.createElement('textarea');
+    txt.innerHTML = html;
+    return txt.value;
 }
 
 // Permitir enviar con Enter

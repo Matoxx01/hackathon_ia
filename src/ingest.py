@@ -8,32 +8,20 @@ INDEX_PATH = KB_DIR / 'db' / 'index.npz'
 
 
 def load_documents(kb_dir: Path, papers_dir: Path = None):
-    """Cargar únicamente archivos markdown bajo `kb/papers/` para indexar.
-
-    El archivo `role.md` se excluye intencionalmente porque contiene las
-    instrucciones/guardrails del agente y no debe formar parte del índice de
-    embeddings.
-    """
+    """Cargar únicamente archivos markdown y PDF bajo `kb/papers/` para indexar."""
     docs = []
     if not papers_dir.exists():
         return docs
+    
     # MarkDown files
     for p in papers_dir.rglob('*.md'):
-        # saltar archivos ocultos o con nombre index
         if p.name.startswith('index'):
             continue
         text = p.read_text(encoding='utf-8')
-        # derivar un título simple: primera línea no vacía o el nombre del archivo
-        title = None
-        for line in text.splitlines():
-            s = line.strip()
-            if s:
-                title = s
-                break
-        if not title:
-            title = p.stem
+        title = next((line.strip() for line in text.splitlines() if line.strip()), p.stem)
         docs.append({'source': str(p.relative_to(kb_dir)), 'text': text, 'title': title})
-    # PDF files: extraer por páginas y tratar cada página como un "documento" breve
+
+    # PDF files
     for p in papers_dir.rglob('*.pdf'):
         try:
             pages = extract_text_from_pdf(p)
@@ -44,6 +32,8 @@ def load_documents(kb_dir: Path, papers_dir: Path = None):
             title = f"{p.stem} - page {i+1}"
             source = str(p.relative_to(kb_dir)) + f"::page_{i+1}"
             docs.append({'source': source, 'text': page_text, 'title': title})
+            
+    return docs
     return docs
 
 

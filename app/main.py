@@ -15,6 +15,19 @@ import qrcode
 import base64
 import matplotlib.pyplot as plt
 import matplotlib
+import re
+from typing import Any, Dict
+
+# importar el orquestador de agentes
+try:
+	from src.agents.agents_factory import run_agent_flow
+except Exception:
+	# fallback si se ejecuta desde diferente cwd
+	try:
+		from agents.agents_factory import run_agent_flow
+	except Exception:
+		run_agent_flow = None
+>>>>>>> c8ab80d3d3f816edf1297edea01366e846a40071
 
 
 # Rutas de directorios relativas a este archivo (app/main.py)
@@ -327,45 +340,128 @@ def add_qr_to_html(html_content: str, pdf_url: str) -> str:
 
 
 # API endpoint para el chatbot (demo hardcodeado)
+# Modelo para las peticiones del chat
+class ChatRequest(BaseModel):
+	message: str
+
+
+# Modelo para las respuestas del chat
+class ChatResponse(BaseModel):
+	response: str
+
+
+def format_response_to_html(text: str) -> str:
+    """
+    Convierte texto con formato simple o sin formato a HTML estructurado.
+    """
+    html = text
+    
+    # --- 1. Búsqueda de formato explícito --- 
+    has_explicit_format = False
+    if html.startswith('[Title: ') or "**" in html:
+        has_explicit_format = True
+
+    if has_explicit_format:
+        if html.startswith('[Title: '):
+            title_end = html.find(']')
+            if title_end != -1:
+                title = html[8:title_end]
+                html = html[title_end+1:].strip()
+                html = f"<h3>{title}</h3>{html}"
+
+        html = html.replace("**Introducción**", "<h4>Introducción</h4>")
+        html = html.replace("**Tipos de Diabetes**", "<h4>Tipos de Diabetes</h4>")
+        html = html.replace("**Complicaciones**", "<h4>Complicaciones</h4>")
+        html = html.replace("**Diagnóstico**", "<h4>Diagnóstico</h4>")
+        html = html.replace("**Prevención y Control**", "<h4>Prevención y Control</h4>")
+        
+        parts = html.split("<h4>")
+        processed_html = ""
+        if parts:
+            first_part = parts[0]
+            h3_end_index = first_part.find("</h3>")
+            if h3_end_index != -1:
+                processed_html += first_part[:h3_end_index+5]
+                remaining_text = first_part[h3_end_index+5:].strip()
+                if remaining_text:
+                    processed_html += f"<p>{remaining_text}</p>"
+            elif first_part.strip():
+                processed_html += f"<p>{first_part.strip()}</p>"
+
+            for part in parts[1:]:
+                h4_end_index = part.find("</h4>")
+                if h4_end_index != -1:
+                    title = part[:h4_end_index]
+                    content = part[h4_end_index+5:].strip()
+                    processed_html += f"<h4>{title}</h4>"
+                    if content:
+                        processed_html += f"<p>{content}</p>"
+        return processed_html
+
+    # --- 2. Búsqueda de palabras clave si no hay formato explícito ---
+    keywords = ["Introducción", "Tipos de Diabetes", "Síntomas", "Diagnóstico", "Complicaciones", "Tratamiento"]
+    temp_html = html
+    found_keywords = False
+
+    # Ordenar keywords por longitud para evitar matching parcial (ej. "Tipos" vs "Tipos de Diabetes")
+    keywords.sort(key=len, reverse=True)
+
+    for keyword in keywords:
+        pattern = r'\b' + re.escape(keyword) + r'\b'
+        if re.search(pattern, temp_html, re.IGNORECASE):
+            found_keywords = True
+            temp_html = re.sub(pattern, f"---section---{keyword}", temp_html, count=1, flags=re.IGNORECASE)
+
+    if found_keywords:
+        processed_html = "<h3>Información sobre Diabetes</h3>"
+        sections = temp_html.split('---section---')
+        
+        if sections[0].strip():
+            processed_html += f"<p>{sections[0].strip()}</p>"
+            
+        for section_content in sections[1:]:
+            section_content = section_content.strip()
+            found_title = None
+            
+            for keyword in keywords:
+                if section_content.lower().startswith(keyword.lower()):
+                    actual_title = section_content[:len(keyword)]
+                    remaining_content = section_content[len(keyword):].strip()
+                    
+                    processed_html += f"<h4>{actual_title}</h4>"
+                    if remaining_content:
+                        processed_html += f"<p>{remaining_content}</p>"
+                    found_title = True
+                    break
+            
+            if not found_title and section_content:
+                processed_html += f"<p>{section_content}</p>"
+        return processed_html
+
+    # --- 3. Fallback: sin formato y sin palabras clave ---
+    return f"<h3>Información</h3><p>{text}</p>"
+
+
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
-	"""
-	Endpoint de chatbot con respuestas hardcodeadas para demostración.
-	"""
-	message = request.message.lower()
-	
-	# Respuestas predefinidas basadas en palabras clave
-	responses = {
-		"hola": "¡Hola! 👋 Soy MediNutrIA, tu asistente de salud y nutrición. Estoy aquí para ayudarte con recomendaciones nutricionales y de bienestar. ¿En qué puedo ayudarte hoy?",
-		"ayuda": "Puedo ayudarte con:\n• Recomendaciones nutricionales personalizadas\n• Consejos de alimentación saludable\n• Información sobre vitaminas y minerales\n• Planes de comidas equilibradas\n• Consejos de hidratación\n¿Sobre qué tema te gustaría saber más?",
-		"dieta": "Para una dieta equilibrada, te recomiendo:\n• Consumir 5 porciones de frutas y verduras al día 🥗\n• Incluir proteínas magras (pollo, pescado, legumbres) 🐟\n• Preferir cereales integrales 🌾\n• Beber al menos 2 litros de agua diarios 💧\n• Limitar el consumo de azúcares y grasas saturadas\n¿Tienes alguna preferencia alimentaria específica?",
-		"agua": "¡Excelente pregunta! 💧 La hidratación es fundamental:\n• Bebe al menos 8 vasos de agua al día (aproximadamente 2 litros)\n• Aumenta la ingesta durante ejercicio o clima caluroso\n• El agua ayuda a la digestión, circulación y temperatura corporal\n• Puedes incluir infusiones sin azúcar\n¿Sueles tener problemas para beber suficiente agua?",
-		"ejercicio": "¡Muy bien! El ejercicio es clave para la salud 💪\n• Se recomienda al menos 150 minutos de actividad moderada por semana\n• Incluye ejercicios cardiovasculares y de fuerza\n• Comienza gradualmente si eres principiante\n• No olvides calentar antes y estirar después\n• Combínalo con una buena alimentación para mejores resultados\n¿Qué tipo de ejercicio te gustaría realizar?",
-		"vitaminas": "Las vitaminas son esenciales para tu salud:\n• Vitamina C: Cítricos, fresas, pimientos 🍊\n• Vitamina D: Sol, pescado graso, huevos ☀️\n• Vitamina A: Zanahorias, espinacas, batatas 🥕\n• Vitaminas B: Cereales integrales, legumbres, frutos secos\n• Vitamina E: Frutos secos, semillas, aceite de oliva\n¿Te interesa saber sobre alguna vitamina en particular?",
-		"peso": "Para un control de peso saludable:\n• Mantén un déficit calórico moderado (no extremo)\n• Come porciones adecuadas, mastica despacio\n• No te saltes comidas, especialmente el desayuno\n• Prioriza alimentos nutritivos sobre calorías vacías\n• Combina alimentación con ejercicio regular\n• Consulta con un profesional para un plan personalizado\nRecuerda: lo importante es la salud, no solo el número en la báscula.",
-		"diabetes": "Para el manejo de la diabetes:\n• Controla el consumo de carbohidratos\n• Prefiere carbohidratos complejos y fibra\n• Come a horarios regulares\n• Monitorea tu glucosa regularmente\n• Mantén un peso saludable\n• Ejercicio regular ayuda a controlar glucosa\n⚠️ Importante: Sigue siempre las indicaciones de tu médico y endocrinólogo.",
-		"desayuno": "Un desayuno saludable podría incluir:\n• Avena con frutas y frutos secos 🥣\n• Huevos revueltos con verduras y pan integral 🍳\n• Yogur natural con frutas y granola\n• Tostadas integrales con aguacate y tomate 🥑\n• Batido de frutas con proteína\nEl desayuno te da energía para comenzar el día. ¿Cuál te gustaría probar?",
-		"sueño": "El buen descanso es fundamental para la salud:\n• Duerme 7-9 horas diariamente 😴\n• Mantén horarios regulares de sueño\n• Evita pantallas 1 hora antes de dormir\n• Cena ligero, al menos 2 horas antes de acostarte\n• Mantén tu habitación oscura y fresca\n• Evita cafeína después de las 16:00\n¿Tienes problemas para dormir?",
-	}
-	
-	# Buscar respuesta basada en palabras clave
-	response = None
-	for keyword, answer in responses.items():
-		if keyword in message:
-			response = answer
-			break
-	
-	# Respuesta por defecto si no hay coincidencias
-	if not response:
-		default_responses = [
-			"Entiendo tu pregunta. Como asistente de salud y nutrición, te recomiendo consultar con un profesional médico para casos específicos. ¿Hay algo sobre nutrición general en lo que pueda ayudarte?",
-			"Esa es una buena pregunta. Puedo ayudarte con información general sobre nutrición, dietas saludables, hidratación, vitaminas y hábitos de vida saludable. ¿Te gustaría saber sobre alguno de estos temas?",
-			"Interesante pregunta. Para brindarte la mejor información, ¿podrías ser más específico? Puedo ayudarte con temas de nutrición, alimentación balanceada, hidratación o hábitos saludables.",
-			"Gracias por tu consulta. Estoy aquí para ayudarte con recomendaciones nutricionales y de bienestar general. ¿Te gustaría saber sobre alimentación saludable, control de peso o vitaminas?",
-		]
-		response = random.choice(default_responses)
-	
-	return ChatResponse(response=response)
+    """
+    Endpoint de chatbot que utiliza el flujo de agentes para generar respuestas.
+    """
+    if run_agent_flow is None:
+        return ChatResponse(response="Error: El flujo de agentes no está disponible.")
+
+    try:
+        out = run_agent_flow(request.message)
+        raw_response = out.get('final', 'Lo siento, no pude generar una respuesta.')
+        formatted_response = format_response_to_html(raw_response)
+        return ChatResponse(response=formatted_response)
+    except Exception as e:
+        return ChatResponse(response=f"Error: {e}")
+
+
+from api import coach
+
+app.include_router(coach.router, prefix="/api/coach", tags=["coach"])
 
 
 # ========== Endpoints para manejo de PDFs ==========
